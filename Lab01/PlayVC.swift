@@ -10,20 +10,85 @@ import UIKit
 
 class PlayVC: UIViewController {
     
+    @IBOutlet weak var progressRP: RPCircularProgress!
+    
+    @IBOutlet var btnCollection: [UIButton]!
+    
+
+    @IBOutlet weak var lblScore: UILabel!
+    @IBOutlet weak var imageView: UIImageView!
+    var score:Int = 0
+    var answer:String?
+    var pokemon1:[pokemon]?
+    var pokemon2:[pokemon]?
+    var pokemon3:[pokemon]?
+    var pokemon4:[pokemon]?
+    var imageString:String?
+    var timer = Timer()
+    
+    func pickerPokemon() {
+        pokemon1 = DataManager.defautManager.selectAllStudent()
+        
+        
+        repeat{
+        pokemon2 = DataManager.defautManager.selectAllStudent()
+        } while (pokemon2?[0].name == pokemon1?[0].name)
+        
+        repeat{
+            pokemon3 = DataManager.defautManager.selectAllStudent()
+        } while (pokemon3?[0].name == pokemon1?[0].name || pokemon3?[0].name == pokemon2?[0].name)
+        
+        repeat{
+            pokemon4 = DataManager.defautManager.selectAllStudent()
+        } while (pokemon4?[0].name == pokemon1?[0].name || pokemon4?[0].name == pokemon2?[0].name || pokemon4?[0].name == pokemon3?[0].name)
+        
+        let num:Int = Int(arc4random_uniform(3))
+        if num == 0 {
+            answer = pokemon1?[0].name
+            imageString = pokemon1?[0].image
+        } else if num == 1 {
+            answer = pokemon2?[0].name
+            imageString = pokemon2?[0].image
+        } else if num == 2 {
+            answer = pokemon3?[0].name
+            imageString = pokemon3?[0].image
+        } else if num == 3 {
+            answer = pokemon4?[0].name
+            imageString = pokemon4?[0].image
+        }
+        imageView.tintColor = UIColor.black
+        self.imageView.image = UIImage(named: self.imageString!)?.withRenderingMode(.alwaysTemplate)
+
+    }
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-        imageView.image = UIImage(named: "Yveltal.png")?.withRenderingMode(.alwaysTemplate)
-        imageView.layer.cornerRadius = 5;
-        button1.layer.cornerRadius = 15;
-        button2.layer.cornerRadius = 15;
-        button3.layer.cornerRadius = 15;
-        button4.layer.cornerRadius = 15;
+        pickerPokemon()
+        setUI()
+    }
+    
+    func setUI() {
         
-        button1.setTitle("Dung", for: .normal)
-        button2.setTitle("Sai", for: .normal)
-        button3.setTitle("Sai", for: .normal)
-        button4.setTitle("Sai", for: .normal)
+        self.progressRP.updateProgress(1, animated: true, initialDelay: 0, duration: 10) {
+            
+        }
+        imageView.layer.cornerRadius = 5;
+        
+        btnCollection[0].setTitle(pokemon1?[0].name, for: .normal)
+        btnCollection[1].setTitle(pokemon2?[0].name, for: .normal)
+        btnCollection[2].setTitle(pokemon3?[0].name, for: .normal)
+        btnCollection[3].setTitle(pokemon4?[0].name, for: .normal)
+        
+        for button in btnCollection {
+            button.isUserInteractionEnabled = true
+            button.backgroundColor = UIColor.white
+        }
+        
+    }
+    
+    func displayAnswer() {
+        self.imageView.image = UIImage(named: self.imageString!)?.withRenderingMode(.alwaysOriginal)
     }
     
     override func didReceiveMemoryWarning() {
@@ -31,87 +96,40 @@ class PlayVC: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    @IBOutlet weak var lblScore: UILabel!
-    @IBOutlet weak var button1: UIButton!
-    @IBOutlet weak var button2: UIButton!
-    @IBOutlet weak var button3: UIButton!
-    @IBOutlet weak var button4: UIButton!
-    @IBOutlet weak var imageView: UIImageView!
-    var score:Int = 0
-
-    var answer:String = "Dung"
     
     @IBAction func back_Clicked(_ sender: AnyObject) {
         navigationController?.popViewController(animated: true)
     }
     
-    @IBAction func btn1_Clicked(_ sender: AnyObject) {
-        if button1.titleLabel!.text == answer {
-            button1.backgroundColor = UIColor.green
-            increaseScore()
-        }
-        else {
-            button1.backgroundColor = UIColor.red
-        }
+    
+    @IBAction func btnClicked(_ sender: UIButton) {
         displayAnswer()
-        lblScore.text = String(score)
-    }
-    
-    @IBAction func btn2_Clicked(_ sender: AnyObject) {
-        if button2.titleLabel!.text == answer {
-            button2.backgroundColor = UIColor.green
-            increaseScore()
-        }
-        else {
-            button2.backgroundColor = UIColor.red
-            
-        }
-        displayAnswer()
-        lblScore.text = String(score)
-    }
-    
-    @IBAction func btn3_Clicked(_ sender: AnyObject) {
-        if button3.titleLabel!.text == answer {
-            button3.backgroundColor = UIColor.green
-            increaseScore()
-        }
-        else {
-            button3.backgroundColor = UIColor.red
-            
-        }
-        displayAnswer()
-        lblScore.text = String(score)
-    }
-    
-    @IBAction func btn4_Clicked(_ sender: AnyObject) {
-        if button4.titleLabel!.text == answer {
-            button4.backgroundColor = UIColor.green
-            increaseScore()
-        }
-        else {
-            button4.backgroundColor = UIColor.red
-            
-        }
-        displayAnswer()
-        lblScore.text = String(score)
-    }
-    
-    
-    func displayAnswer() {
-                imageView.image = UIImage(named: "Yveltal.png")?.withRenderingMode(.alwaysOriginal)
-        
-        if button1.titleLabel!.text == answer {
-            button1.backgroundColor = UIColor.green
-        } else if button2.titleLabel!.text == answer {
-            button2.backgroundColor = UIColor.green
-        } else if button3.titleLabel!.text == answer {
-            button3.backgroundColor = UIColor.green
+        if sender.titleLabel?.text != answer {
+            sender.backgroundColor = UIColor.red
         } else {
-            button4.backgroundColor = UIColor.green
+            score += 1
+            lblScore.text = String(score)
+
+        }
+        
+        for button in btnCollection {
+            if button.titleLabel?.text == answer {
+                button.backgroundColor = UIColor.green
+            }
+            button.isUserInteractionEnabled = false
+        }
+        
+        
+        nextQuiz()
+
+    }
+    
+    func nextQuiz() {
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2) {
+            self.pickerPokemon()
+            self.setUI()
+            
         }
     }
     
-    func increaseScore() {
-        score += 1
-    }
 }
